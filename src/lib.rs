@@ -1,5 +1,5 @@
 use regex::{Regex, RegexSet, RegexSetBuilder};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use std::env::args_os;
 use std::error::Error;
 use std::fmt;
@@ -158,28 +158,6 @@ fn is_valid(line: &str, exceptions: &RegexSet, ignores: &RegexSet) -> bool {
     true
 }
 
-fn old_clean_history(history_file: &PathBuf) -> Result<Vec<String>> {
-    let ignore_regex = RegexSetBuilder::new(IGNORES)
-        .case_insensitive(true)
-        .build()?;
-    let exception_regex = RegexSetBuilder::new(EXCEPTIONS)
-        .case_insensitive(true)
-        .build()?;
-
-    let mut seen = HashSet::new();
-    let mut new_lines = Vec::new();
-    let input = std::fs::read_to_string(history_file)?;
-
-    for line in input.lines().rev() {
-        let line = line.split_whitespace().collect::<Vec<_>>().join(" ");
-        if is_valid(&line, &exception_regex, &ignore_regex) && !seen.contains(&line) {
-            seen.insert(line.clone());
-            new_lines.push(line);
-        }
-    }
-    Ok(new_lines.into_iter().rev().collect())
-}
-
 pub struct HistoryCommands(Vec<HistoryCommand>);
 impl fmt::Display for HistoryCommands {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> result::Result<(), fmt::Error> {
@@ -222,13 +200,6 @@ pub fn clean_history(input: &str) -> Result<HistoryCommands> {
     );
     new_commands.0.sort();
     Ok(new_commands)
-}
-
-fn old_write_history(history_file: &PathBuf, history: &[String]) -> Result<()> {
-    let mut file = NamedTempFile::new()?;
-    writeln!(file, "{}", history.join("\n"))?;
-    file.persist(history_file)?;
-    Ok(())
 }
 
 pub fn write_history(history_file: &PathBuf, history: &HistoryCommands) -> Result<()> {
