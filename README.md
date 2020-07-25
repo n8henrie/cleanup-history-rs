@@ -103,15 +103,24 @@ $ history # now incorrectly interprets `#1234 bar` as a timestamp
 
 ## Benchmarks
 
+The deduplicated line count is a little different due to slightly different
+regexes ¯\\_(ツ)_/¯. I think it's close enough to be informational.
+
 ```console
+$ wc -l bash_history.bak
+86636 bash_history.bak
 $ hyperfine --warmup=5 --prepare='cp bash_history.bak bash_history_python' \
     --export-markdown=bash-history-python.txt \
     --time-unit=millisecond \
     'python3 cleanup-history.py bash_history_python'
+$ wc -l bash_history_python
+73149 bash_history_python
 $ hyperfine --warmup=5 --prepare='cp bash_history.bak bash_history_rust' \
     --export-markdown=bash-history-rust.txt \
     --time-unit=millisecond \
     'cleanup-history-rs/target/release/cleanup-history bash_history_rust'
+$ wc -l bash_history_rust
+64638 bash_history_rust
 ```
 
 | Command | Mean [ms] | Min [ms] | Max [ms] |
