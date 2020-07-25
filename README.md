@@ -124,6 +124,6 @@ $ wc -l bash_history_rust
 ```
 
 | Command | Mean [ms] | Min [ms] | Max [ms] |
-|:---|---:|---:|---:|---:|
+|:---|---:|---:|---:|
 | `python3 cleanup-history.py bash_history_python` | 2069.9 ± 112.4 | 1935.1 | 2356.4 |
 | `cleanup-history-rs/target/release/cleanup-history bash_history_rust` | 653.5 ± 22.1 | 631.2 | 698.9 |
