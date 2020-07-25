@@ -100,3 +100,21 @@ $ history # now incorrectly interprets `#1234 bar` as a timestamp
     4  2020-07-06 08:19.31 | history -w
     5  2020-07-06 08:19.51 | history
 ```
+
+## Benchmarks
+
+```console
+$ hyperfine --warmup=5 --prepare='cp bash_history.bak bash_history_python' \
+    --export-markdown=bash-history-python.txt \
+    --time-unit=millisecond \
+    'python3 cleanup-history.py bash_history_python'
+$ hyperfine --warmup=5 --prepare='cp bash_history.bak bash_history_rust' \
+    --export-markdown=bash-history-rust.txt \
+    --time-unit=millisecond \
+    'cleanup-history-rs/target/release/cleanup-history bash_history_rust'
+```
+
+| Command | Mean [ms] | Min [ms] | Max [ms] |
+|:---|---:|---:|---:|---:|
+| `python3 cleanup-history.py bash_history_python` | 2069.9 ± 112.4 | 1935.1 | 2356.4 |
+| `cleanup-history-rs/target/release/cleanup-history bash_history_rust` | 653.5 ± 22.1 | 631.2 | 698.9 |
