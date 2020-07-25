@@ -16,6 +16,7 @@ macro_rules! err {
     }
 }
 
+/// IGNORES should not be included in the final history unless they are in EXCEPTIONS
 const IGNORES: &[&str] = &[
     // short things
     "^.{1,3}$",
@@ -35,6 +36,8 @@ const IGNORES: &[&str] = &[
     // Sensitive looking lines
     "(api|token|key|secret|pass)",
 ];
+
+/// EXCEPTIONS should be included in the history even if they also match IGNORES
 const EXCEPTIONS: &[&str] = &[
     // password retrieval to clipboard
     "^pass -c",
@@ -46,6 +49,7 @@ struct HistoryCommand {
     command: String,
 }
 
+/// HistoryCommand should be sorted by timestamp then alphabetically
 impl PartialOrd for HistoryCommand {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(
@@ -122,6 +126,7 @@ impl Iterator for HistoryIterator<'_> {
     }
 }
 
+/// Write the usage to stderr
 pub fn usage() -> io::Result<()> {
     writeln!(
         io::stderr(),
@@ -131,6 +136,7 @@ pub fn usage() -> io::Result<()> {
     )
 }
 
+/// Ensure script was called with only one argument and parse the arg to path
 fn parse_args<T, U>(args: &mut T) -> Result<PathBuf>
 where
     T: Iterator<Item = U>,
@@ -210,6 +216,7 @@ fn write_history(history_file: &PathBuf, history: &HistoryCommands) -> Result<()
     Ok(())
 }
 
+/// Expose a runner for the command line tool
 pub fn run() -> Result<()> {
     let mut args = args_os();
     let history_file = parse_args(&mut args)?;
