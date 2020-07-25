@@ -1,4 +1,4 @@
-# cleanup-history-rs
+# [cleanup-history-rs](https://crates.io/crates/cleanup-history)
 
 Filters my `.bash_history` through a set of regexes, deduplicates, and sorts it
 by most recently used.
