@@ -224,3 +224,6 @@ pub fn run() -> Result<()> {
     let history = clean_history(&input)?;
     write_history(&history_file, &history)
 }
+
+#[cfg(test)]
+mod tests;

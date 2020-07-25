@@ -1,4 +1,4 @@
-use cleanup_history::{clean_history, parse_args};
+use super::*;
 
 #[test]
 fn test_parse_args() {
@@ -17,7 +17,7 @@ fn reproduces_clean_history() {
                  #456\n\
                  echo bar\n\
                  ";
-    let output = input.clone();
+    let output = input;
     assert_eq!(clean_history(input).unwrap().to_string(), output)
 }
 
