@@ -8,7 +8,7 @@ use std::path::PathBuf;
 use std::result;
 use tempfile::NamedTempFile;
 
-pub type Result<T> = result::Result<T, Box<dyn Error>>;
+type Result<T> = result::Result<T, Box<dyn Error>>;
 
 macro_rules! err {
     ($($tt:tt)*) => {
@@ -41,7 +41,7 @@ const EXCEPTIONS: &[&str] = &[
 ];
 
 #[derive(PartialEq, Eq, Ord)]
-pub struct HistoryCommand {
+struct HistoryCommand {
     timestamp: u32,
     command: String,
 }
@@ -64,11 +64,11 @@ struct HistoryIterator<'a> {
 
 impl<'a> From<&'a str> for HistoryIterator<'a> {
     fn from(s: &'a str) -> Self {
-        return Self {
+        Self {
             data: s.lines(),
             timestamp_regex: Regex::new(r"^#\d+$").expect("You've got a bad regex there."),
             next_timestamp: None,
-        };
+        }
     }
 }
 
@@ -104,7 +104,7 @@ impl Iterator for HistoryIterator<'_> {
             None => return None,
             Some(v) => v
                 .trim()
-                .trim_start_matches("#")
+                .trim_start_matches('#')
                 .parse()
                 .map_err(|e: std::num::ParseIntError| e.into()),
         };
@@ -114,10 +114,10 @@ impl Iterator for HistoryIterator<'_> {
 
         match (timestamp, command) {
             (Ok(timestamp), command) if command.is_empty() => {
-                return Some(err!("command was empty for timestamp {}", timestamp))
+                Some(err!("command was empty for timestamp {}", timestamp))
             }
-            (Ok(timestamp), command) => return Some(Ok(HistoryCommand { timestamp, command })),
-            (Err(e), command) => return Some(err!("{}, {}", e, command)),
+            (Ok(timestamp), command) => Some(Ok(HistoryCommand { timestamp, command })),
+            (Err(e), command) => Some(err!("{}, {}", e, command)),
         }
     }
 }
@@ -131,7 +131,7 @@ pub fn usage() -> io::Result<()> {
     )
 }
 
-pub fn parse_args<T, U>(args: &mut T) -> Result<PathBuf>
+fn parse_args<T, U>(args: &mut T) -> Result<PathBuf>
 where
     T: Iterator<Item = U>,
     U: std::convert::AsRef<std::ffi::OsStr>,
@@ -158,7 +158,8 @@ fn is_valid(line: &str, exceptions: &RegexSet, ignores: &RegexSet) -> bool {
     true
 }
 
-pub struct HistoryCommands(Vec<HistoryCommand>);
+struct HistoryCommands(Vec<HistoryCommand>);
+
 impl fmt::Display for HistoryCommands {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> result::Result<(), fmt::Error> {
         for hc in self.0.iter() {
@@ -169,7 +170,7 @@ impl fmt::Display for HistoryCommands {
     }
 }
 
-pub fn clean_history(input: &str) -> Result<HistoryCommands> {
+fn clean_history(input: &str) -> Result<HistoryCommands> {
     let ignore_regex = RegexSetBuilder::new(IGNORES)
         .case_insensitive(true)
         .build()?;
@@ -202,7 +203,7 @@ pub fn clean_history(input: &str) -> Result<HistoryCommands> {
     Ok(new_commands)
 }
 
-pub fn write_history(history_file: &PathBuf, history: &HistoryCommands) -> Result<()> {
+fn write_history(history_file: &PathBuf, history: &HistoryCommands) -> Result<()> {
     let mut file = NamedTempFile::new()?;
     write!(file, "{}", history)?;
     file.persist(history_file)?;
