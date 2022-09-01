@@ -1,18 +1,19 @@
 use regex::{Regex, RegexSet, RegexSetBuilder};
 use std::collections::HashMap;
 use std::env::args_os;
-use std::error::Error;
+use std::error;
 use std::fmt;
 use std::io::{self, Write};
 use std::path::PathBuf;
 use std::result;
 use tempfile::NamedTempFile;
 
-type Result<T> = result::Result<T, Box<dyn Error>>;
+type Error = Box<dyn error::Error + Send + Sync>;
+type Result<T> = result::Result<T, Error>;
 
 macro_rules! err {
     ($($tt:tt)*) => {
-        Err(Box::<dyn Error>::from(format!($($tt)*)))
+        Err(Error::from(format!($($tt)*)))
     }
 }
 
@@ -143,10 +144,8 @@ where
     U: std::convert::AsRef<std::ffi::OsStr>,
 {
     let _script = args.next();
-    let history_file = match args.next() {
-        Some(path) => path,
-        _ => return err!("please supply the path to the bash_history file"),
-    };
+    let history_file = args.next().ok_or_else(||
+        Error::from("please supply the path to the bash_history file"))?;
     if args.next().is_some() {
         return err!("this script only accepts one argument");
     }
