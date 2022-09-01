@@ -78,7 +78,8 @@ impl<'a> From<&'a str> for HistoryIterator<'a> {
     fn from(s: &'a str) -> Self {
         Self {
             data: s.lines(),
-            timestamp_regex: Regex::new(r"^#\d+$").expect("You've got a bad regex there."),
+            timestamp_regex: Regex::new(r"^#\d+$")
+                .expect("You've got a bad regex there."),
             next_timestamp: None,
         }
     }
@@ -91,11 +92,17 @@ impl Iterator for HistoryIterator<'_> {
         let timestamp = loop {
             match self.data.next() {
                 // Either new or duplicate timestamp, take the last while command is empty
-                Some(line) if self.timestamp_regex.is_match(line) && command.is_empty() => {
+                Some(line)
+                    if self.timestamp_regex.is_match(line)
+                        && command.is_empty() =>
+                {
                     self.next_timestamp = Some(line);
                 }
                 // New timestamp, return a completed command
-                Some(line) if self.timestamp_regex.is_match(line) && !command.is_empty() => {
+                Some(line)
+                    if self.timestamp_regex.is_match(line)
+                        && !command.is_empty() =>
+                {
                     break self.next_timestamp.replace(line);
                 }
                 // Accumulate lines of command (if multiple)
@@ -105,7 +112,7 @@ impl Iterator for HistoryIterator<'_> {
                         command += trimmed_line;
                         command += "; ";
                     }
-                },
+                }
                 // End of file
                 None => {
                     break self.next_timestamp.take();
@@ -114,22 +121,28 @@ impl Iterator for HistoryIterator<'_> {
         };
 
         let timestamp: Option<Result<u32>> = timestamp.map(|v| {
-                v.trim()
-                .trim_start_matches('#')
-                .parse()
-                .map_err(Into::into)
+            v.trim().trim_start_matches('#').parse().map_err(Into::into)
         });
 
         // Get rid of differences in whitespace
-        let command = command.split_whitespace().collect::<Vec<_>>().join(" ").trim_end_matches(';').to_owned();
+        let command = command
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(" ")
+            .trim_end_matches(';')
+            .to_owned();
 
         match (timestamp, command) {
             (Some(Ok(timestamp)), command) if command.is_empty() => {
                 Some(err!("command was empty for timestamp {}", timestamp))
             }
-            (Some(Ok(timestamp)), command) => Some(Ok(HistoryCommand { timestamp, command })),
+            (Some(Ok(timestamp)), command) => {
+                Some(Ok(HistoryCommand { timestamp, command }))
+            }
             (Some(Err(e)), command) => Some(err!("{}, {}", e, command)),
-            (None, command) if !command.is_empty() => Some(err!("missing timestamp for command: {}", command)),
+            (None, command) if !command.is_empty() => {
+                Some(err!("missing timestamp for command: {}", command))
+            }
             (None, _) => None,
         }
     }
@@ -151,10 +164,10 @@ where
     T: Iterator<Item = U>,
     U: std::convert::AsRef<std::ffi::OsStr>,
 {
-
     let _script = args.next();
-    let history_file = args.next().ok_or_else(||
-        Error::from("please supply the path to the bash_history file"))?;
+    let history_file = args.next().ok_or_else(|| {
+        Error::from("please supply the path to the bash_history file")
+    })?;
     if args.next().is_some() {
         err!("this script only accepts one argument")?;
     }
@@ -182,7 +195,10 @@ fn is_valid(line: &str, exceptions: &RegexSet, ignores: &RegexSet) -> bool {
 struct HistoryCommands(Vec<HistoryCommand>);
 
 impl fmt::Display for HistoryCommands {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> result::Result<(), fmt::Error> {
+    fn fmt(
+        &self,
+        f: &mut fmt::Formatter<'_>,
+    ) -> result::Result<(), fmt::Error> {
         for hc in &self.0 {
             writeln!(f, "#{}", hc.timestamp)?;
             writeln!(f, "{}", hc.command)?;
@@ -224,7 +240,10 @@ fn clean_history(input: &str) -> Result<HistoryCommands> {
     Ok(new_commands)
 }
 
-fn write_history(history_file: &PathBuf, history: &HistoryCommands) -> Result<()> {
+fn write_history(
+    history_file: &PathBuf,
+    history: &HistoryCommands,
+) -> Result<()> {
     let cwd = std::env::current_dir()?;
     let dir = history_file.parent().unwrap_or(cwd.as_path());
     let mut file = NamedTempFile::new_in(dir)?;
