@@ -1,6 +1,6 @@
 [package]
 name = "cleanup-history"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Nathan Henrie <nate@n8henrie.com>"]
 edition = "2018"
 description = "Filters my `.bash_history` through a set of regexes, deduplicates, and sorts it by most recently used."
