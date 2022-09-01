@@ -218,7 +218,9 @@ fn clean_history(input: &str) -> Result<HistoryCommands> {
 }
 
 fn write_history(history_file: &PathBuf, history: &HistoryCommands) -> Result<()> {
-    let mut file = NamedTempFile::new()?;
+    let cwd = std::env::current_dir()?;
+    let dir = history_file.parent().unwrap_or(cwd.as_path());
+    let mut file = NamedTempFile::new_in(dir)?;
     write!(file, "{}", history)?;
     file.persist(history_file)?;
     Ok(())
