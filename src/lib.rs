@@ -144,11 +144,19 @@ where
     T: Iterator<Item = U>,
     U: std::convert::AsRef<std::ffi::OsStr>,
 {
+
     let _script = args.next();
     let history_file = args.next().ok_or_else(||
         Error::from("please supply the path to the bash_history file"))?;
     if args.next().is_some() {
-        return err!("this script only accepts one argument");
+        err!("this script only accepts one argument")?;
+    }
+
+    if let Some(s) = history_file.as_ref().to_str() {
+        if ["-h", "--help"].contains(&s) {
+            usage()?;
+            std::process::exit(0);
+        }
     }
 
     let path = PathBuf::from(&history_file);
