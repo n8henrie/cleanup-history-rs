@@ -149,6 +149,9 @@ impl Iterator for HistoryIterator<'_> {
 }
 
 /// Write the usage to stderr
+/// # Errors
+///
+/// Returns an error if it fails to wroute to stderr.
 pub fn usage() -> io::Result<()> {
     writeln!(
         io::stderr(),
