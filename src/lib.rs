@@ -81,48 +81,49 @@ impl Iterator for HistoryIterator<'_> {
     type Item = Result<HistoryCommand>;
     fn next(&mut self) -> Option<Self::Item> {
         let mut command = String::new();
-        let timestamp: Option<&str>;
-        loop {
+        let timestamp = loop {
             match self.data.next() {
                 // Either new or duplicate timestamp, take the last while command is empty
                 Some(line) if self.timestamp_regex.is_match(line) && command.is_empty() => {
-                    self.next_timestamp = Some(line)
+                    self.next_timestamp = Some(line);
                 }
                 // New timestamp, return a completed command
                 Some(line) if self.timestamp_regex.is_match(line) && !command.is_empty() => {
-                    timestamp = self.next_timestamp;
-                    self.next_timestamp = Some(line);
-                    break;
+                    break self.next_timestamp.replace(line);
                 }
                 // Accumulate lines of command (if multiple)
-                Some(line) => command += line,
-
+                Some(line) => {
+                    let trimmed_line = line.trim();
+                    if !trimmed_line.is_empty() {
+                        command += trimmed_line;
+                        command += "; ";
+                    }
+                },
+                // End of file
                 None => {
-                    timestamp = self.next_timestamp;
-                    self.next_timestamp = None;
-                    break;
+                    break self.next_timestamp.take();
                 }
             };
-        }
-
-        let timestamp: Result<u32> = match timestamp {
-            None => return None,
-            Some(v) => v
-                .trim()
-                .trim_start_matches('#')
-                .parse()
-                .map_err(|e: std::num::ParseIntError| e.into()),
         };
 
+        let timestamp: Option<Result<u32>> = timestamp.map(|v| {
+                v.trim()
+                .trim_start_matches('#')
+                .parse()
+                .map_err(Into::into)
+        });
+
         // Get rid of differences in whitespace
-        let command = command.split_whitespace().collect::<Vec<_>>().join(" ");
+        let command = command.split_whitespace().collect::<Vec<_>>().join(" ").trim_end_matches(';').to_owned();
 
         match (timestamp, command) {
-            (Ok(timestamp), command) if command.is_empty() => {
+            (Some(Ok(timestamp)), command) if command.is_empty() => {
                 Some(err!("command was empty for timestamp {}", timestamp))
             }
-            (Ok(timestamp), command) => Some(Ok(HistoryCommand { timestamp, command })),
-            (Err(e), command) => Some(err!("{}, {}", e, command)),
+            (Some(Ok(timestamp)), command) => Some(Ok(HistoryCommand { timestamp, command })),
+            (Some(Err(e)), command) => Some(err!("{}, {}", e, command)),
+            (None, command) if !command.is_empty() => Some(err!("missing timestamp for command: {}", command)),
+            (None, _) => None,
         }
     }
 }
