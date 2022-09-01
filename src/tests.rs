@@ -136,4 +136,14 @@ fn strips_extra_spaces_before_processing() {
     assert_eq!(clean_history(input).unwrap().to_string(), output);
 }
 
+#[test]
+fn joints_multiline_commands() {
+    let input = "#456\n\
+                 echo foo\n\
+                 echo bar\n\
+                 ";
+    let output = "#456\n\
+                  echo foo; echo bar\n\
+                  ";
+    assert_eq!(clean_history(input).unwrap().to_string(), output);
 }
