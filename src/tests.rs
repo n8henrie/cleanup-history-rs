@@ -147,3 +147,13 @@ fn joints_multiline_commands() {
                   ";
     assert_eq!(clean_history(input).unwrap().to_string(), output);
 }
+
+#[test]
+fn error_if_empty() {
+    let input = "#123\n\
+                 #456\n\
+                 ";
+    let result = clean_history(input);
+    assert!(result.is_err());
+    assert_eq!(result.err().unwrap().to_string(), "no valid commands");
+}

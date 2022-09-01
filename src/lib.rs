@@ -230,12 +230,18 @@ fn clean_history(input: &str) -> Result<HistoryCommands> {
             Err(e) => writeln!(io::stderr(), "{}", e)?,
         }
     }
+
     let mut new_commands = HistoryCommands(
         history
             .into_iter()
             .map(|(command, timestamp)| HistoryCommand { timestamp, command })
             .collect(),
     );
+
+    if new_commands.0.is_empty() {
+        return err!("no valid commands");
+    }
+
     new_commands.0.sort();
     Ok(new_commands)
 }
@@ -253,6 +259,9 @@ fn write_history(
 }
 
 /// Expose a runner for the command line tool
+/// # Errors
+///
+/// Returns an error if it fails to parse the history file or if it is empty.
 pub fn run() -> Result<()> {
     let mut args = args_os();
     let history_file = parse_args(&mut args)?;
