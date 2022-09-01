@@ -18,7 +18,7 @@ fn reproduces_clean_history() {
                  echo bar\n\
                  ";
     let output = input;
-    assert_eq!(clean_history(input).unwrap().to_string(), output)
+    assert_eq!(clean_history(input).unwrap().to_string(), output);
 }
 
 #[test]
@@ -35,7 +35,7 @@ fn takes_last_timestamp() {
                   #456\n\
                   echo bar\n\
                   ";
-    assert_eq!(clean_history(input).unwrap().to_string(), output)
+    assert_eq!(clean_history(input).unwrap().to_string(), output);
 }
 
 #[test]
@@ -49,7 +49,7 @@ fn strips_trailing_timestamps() {
     let output = "#234\n\
                   echo foo\n\
                   ";
-    assert_eq!(clean_history(input).unwrap().to_string(), output)
+    assert_eq!(clean_history(input).unwrap().to_string(), output);
 }
 
 #[test]
@@ -64,7 +64,7 @@ fn sorts_commands() {
                   #456\n\
                   echo bar\n\
                   ";
-    assert_eq!(clean_history(input).unwrap().to_string(), output)
+    assert_eq!(clean_history(input).unwrap().to_string(), output);
 }
 
 #[test]
@@ -77,7 +77,7 @@ fn removes_duplicate_commands() {
     let output = "#456\n\
                   echo foo\n\
                   ";
-    assert_eq!(clean_history(input).unwrap().to_string(), output)
+    assert_eq!(clean_history(input).unwrap().to_string(), output);
 }
 
 #[test]
@@ -90,7 +90,7 @@ fn removes_duplicates_leaving_most_recent() {
     let output = "#456\n\
                  echo foo\n\
                  ";
-    assert_eq!(clean_history(input).unwrap().to_string(), output)
+    assert_eq!(clean_history(input).unwrap().to_string(), output);
 }
 
 #[test]
@@ -103,7 +103,7 @@ fn skips_short_commands() {
     let output = "#123\n\
                  echo foo\n\
                  ";
-    assert_eq!(clean_history(input).unwrap().to_string(), output)
+    assert_eq!(clean_history(input).unwrap().to_string(), output);
 }
 
 #[test]
@@ -118,7 +118,7 @@ fn skips_cd_and_ls_to_relative_directory() {
     let output = "#345\n\
                   echo bar\n\
                   ";
-    assert_eq!(clean_history(input).unwrap().to_string(), output)
+    assert_eq!(clean_history(input).unwrap().to_string(), output);
 }
 
 #[test]
@@ -133,5 +133,7 @@ fn strips_extra_spaces_before_processing() {
     let output = "#456\n\
                   echo foo\n\
                   ";
-    assert_eq!(clean_history(input).unwrap().to_string(), output)
+    assert_eq!(clean_history(input).unwrap().to_string(), output);
+}
+
 }

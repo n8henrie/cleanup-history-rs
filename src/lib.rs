@@ -1,3 +1,4 @@
+#![warn(clippy::pedantic)]
 use regex::{Regex, RegexSet, RegexSetBuilder};
 use std::collections::HashMap;
 use std::env::args_os;
@@ -44,13 +45,13 @@ const EXCEPTIONS: &[&str] = &[
     "^pass -c",
 ];
 
-#[derive(PartialEq, Eq, Ord)]
+#[derive(PartialEq, Eq)]
 struct HistoryCommand {
     timestamp: u32,
     command: String,
 }
 
-/// HistoryCommand should be sorted by timestamp then alphabetically
+/// `HistoryCommand` should be sorted by timestamp then alphabetically
 impl PartialOrd for HistoryCommand {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         Some(
@@ -58,6 +59,12 @@ impl PartialOrd for HistoryCommand {
                 .cmp(&other.timestamp)
                 .then_with(|| self.command.cmp(&other.command)),
         )
+    }
+}
+
+impl Ord for HistoryCommand {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.partial_cmp(other).unwrap()
     }
 }
 
@@ -176,7 +183,7 @@ struct HistoryCommands(Vec<HistoryCommand>);
 
 impl fmt::Display for HistoryCommands {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> result::Result<(), fmt::Error> {
-        for hc in self.0.iter() {
+        for hc in &self.0 {
             writeln!(f, "#{}", hc.timestamp)?;
             writeln!(f, "{}", hc.command)?;
         }
@@ -193,14 +200,14 @@ fn clean_history(input: &str) -> Result<HistoryCommands> {
         .build()?;
 
     let mut history = <HashMap<String, u32>>::new();
-    let iter: HistoryIterator = input.into();
+    let iter = HistoryIterator::from(input);
     for hc in iter {
         match hc {
             Ok(hc) => {
                 if is_valid(&hc.command, &exception_regex, &ignore_regex) {
                     let ts = history.entry(hc.command).or_insert(hc.timestamp);
                     if *ts < hc.timestamp {
-                        *ts = hc.timestamp
+                        *ts = hc.timestamp;
                     }
                 }
             }
@@ -210,7 +217,7 @@ fn clean_history(input: &str) -> Result<HistoryCommands> {
     let mut new_commands = HistoryCommands(
         history
             .into_iter()
-            .map(|(command, timestamp)| HistoryCommand { command, timestamp })
+            .map(|(command, timestamp)| HistoryCommand { timestamp, command })
             .collect(),
     );
     new_commands.0.sort();
